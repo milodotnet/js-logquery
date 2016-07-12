@@ -1,0 +1,19 @@
+{
+  "name": "azure-cli-stuff",
+  "version": "0.0.0",
+  "description": "",
+  "main": "get-logs.js",
+  "dependencies": {
+    "chalk": "^1.1.3",
+    "azure-storage": "^1.1.0"
+  },
+  "devDependencies": {
+    "azure-storage": "^1.1.0",
+    "chalk": "^1.1.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
