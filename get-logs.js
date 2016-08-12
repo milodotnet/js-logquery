@@ -15,16 +15,25 @@ fs.readFile( __dirname + '/config.json', function (err, configContent) {
   }
   
   var config = JSON.parse(configContent);
-   
+  var level = 5;
+  
   console.log(chalk.gray("running query with options: "));
   console.log(config);
+  
+  if(config.local){
+    process.env['EMULATED'] = 'true';    
+  }
+  
+  if(config.errorLevel){
+    level = config.level;
+  }
   
   queryTableStorageLogs({ 
       storageAccountName : config.azureStorageAccount.name,
       storageAccountKey :  config.azureStorageAccount.key,
       tableName : 'OrderLogs',
       numberOfRows : 1000,
-      maxLevel : 5 
+      maxLevel : level
   });
 
 });  
@@ -39,8 +48,14 @@ function printLogEntry(entry){
     var currentPayload = entry.Payload["_"];
     var logMessage = JSON.parse(currentPayload);
     var startOfException = logMessage.message.indexOf("exception: ");
+    var offset = 10;
     if(startOfException == -1 ){
         startOfException = logMessage.message.indexOf("Exception: ");
+    }
+    
+     if(startOfException == -1 ){
+        startOfException = logMessage.message.indexOf("Error : ");
+        offset = 7;
     }
     
 
@@ -57,7 +72,7 @@ function printLogEntry(entry){
     }
     
     console.log(chalk.red("errors"));
-    startOfException = startOfException + 10;
+    startOfException = startOfException + offset;
     
     var expectionPart = logMessage.message.substring(startOfException);
     var expectionObj = JSON.parse(expectionPart);
