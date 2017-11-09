@@ -6,6 +6,9 @@ console.log("Log table storage view");
 var azure = require('azure-storage');
 var chalk = require('chalk');
 var fs = require('fs');
+var queries = require('./queries.js');
+var storage = require('./table-storage.js');
+
 
 fs.readFile( __dirname + '/config.json', function (err, configContent) {
   if (err) {
@@ -24,17 +27,19 @@ fs.readFile( __dirname + '/config.json', function (err, configContent) {
     process.env['EMULATED'] = 'true';    
   }
   
-  if(config.errorLevel){
+  if(config.level){
     level = config.level;
   }
   
-  queryTableStorageLogs({ 
+  var query = queries.queryByEventLevel(level, 1000);
+  console.log("Querying by event level: " + level);
+
+  
+  storage.execute({ 
       storageAccountName : config.azureStorageAccount.name,
       storageAccountKey :  config.azureStorageAccount.key,
       tableName : 'OrderLogs',
-      numberOfRows : 1000,
-      maxLevel : level
-  });
+  }, query, printQueryResults);
 
 });  
 
@@ -83,32 +88,7 @@ function printLogEntry(entry){
     console.log("end of log entry.... \n");  
 }
 
-function queryTableStorageLogs(options){
 
-    process.env['AZURE_STORAGE_ACCOUNT'] = options.storageAccountName;
-    process.env['AZURE_STORAGE_ACCESS_KEY'] = options.storageAccountKey;
-
-    var numberOfRows = options.numberOfRows;
-    var eventLevel = options.maxLevel;
-
-    console.log("Querying " + numberOfRows + " rows worth of events from the " + options.tableName + " table");
-    console.log("Filter all events less than event level : " + eventLevel);
-
-    var tableSvc = azure.createTableService();
-    var query = new azure.TableQuery()
-        .top(numberOfRows)
-        .where('Level <= ?', eventLevel);
-    
-    tableSvc.queryEntities(options.tableName,query, null, function(error, result, response) {
-    if(!error) {
-        printQueryResults(result.entries);
-    }
-    else {
-        console.log(chalk.red("failed to get logs"));
-        console.log(error); 
-    }
-    });    
-}
 
 
 
